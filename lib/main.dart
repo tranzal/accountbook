@@ -1,9 +1,6 @@
-import 'package:accountbook/screens/Login.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
+import 'package:accountbook/screens/CalendarScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 
 void main() async {
   runApp(const MyApp());
@@ -36,6 +33,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return const Login();
+    return CalendarScreen();
   }
 }
