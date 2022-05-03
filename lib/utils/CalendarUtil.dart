@@ -1,15 +1,18 @@
 import 'dart:collection';
 
+import 'package:hive/hive.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 /// Example event class.
 class Event {
   final String title;
-
-  const Event(this.title);
+  final String pay;
+  const Event(this.title, this.pay);
 
   @override
-  String toString() => title;
+  String toString() => '내용 : ${title} 금액 : ${pay} ';
+
+
 }
 
 /// Example events.
@@ -21,17 +24,16 @@ final kEvents = LinkedHashMap<DateTime, List<Event>>(
 )..addAll(_kEventSource);
 
 final _kEventSource = {
-  for (var item in List.generate(50, (index) => index))
-    DateTime.utc(kFirstDay.year, kFirstDay.month, item * 5): List.generate(
-        item % 4 + 1, (index) => Event('Event $item | ${index + 1}'))
+    DateTime.utc(kFirstDay.year, kFirstDay.month, 3): List.generate(1, (index) => const Event('111111','asdfasdf'))
 }..addAll({
     kToday: [
-      Event('Today\'s Event 1'),
-      Event('Today\'s Event 2'),
+      const Event('Today\'s Event 1','아아아'),
+      const Event('Today\'s Event 2','아아아'),
     ],
   });
 
 int getHashCode(DateTime key) {
+
   return key.day * 1000000 + key.month * 10000 + key.year;
 }
 

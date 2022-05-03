@@ -1,12 +1,12 @@
-// Copyright 2019 Aleksander Woźniak
-// SPDX-License-Identifier: Apache-2.0
-
 import 'dart:collection';
 
+import 'package:accountbook/hive/EventTypeAdapter.dart';
 import 'package:accountbook/utils/CalendarUtil.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:hive/hive.dart';
 
 class TableComplexExample extends StatefulWidget {
   @override
@@ -14,6 +14,7 @@ class TableComplexExample extends StatefulWidget {
 }
 
 class _TableComplexExampleState extends State<TableComplexExample> {
+
   late final PageController _pageController;
   late final ValueNotifier<List<Event>> _selectedEvents;
   final ValueNotifier<DateTime> _focusedDay = ValueNotifier(DateTime.now());
@@ -29,7 +30,6 @@ class _TableComplexExampleState extends State<TableComplexExample> {
   @override
   void initState() {
     super.initState();
-
     _selectedDays.add(_focusedDay.value);
     _selectedEvents = ValueNotifier(_getEventsForDay(_focusedDay.value));
   }
@@ -60,6 +60,13 @@ class _TableComplexExampleState extends State<TableComplexExample> {
   }
 
   void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
+    List data = Hive.box('calendarData').get(selectedDay, defaultValue: []);
+
+    Hive.box('calendarData').put(selectedDay.toString(),[
+      const Event('fgsdfgsdfg', 'sdafgsdfg')
+    ]);
+
+
     setState(() {
       if (_selectedDays.contains(selectedDay)) {
         _selectedDays.remove(selectedDay);
@@ -74,9 +81,35 @@ class _TableComplexExampleState extends State<TableComplexExample> {
     });
 
     _selectedEvents.value = _getEventsForDays(_selectedDays);
+    Get.bottomSheet(
+        Container(
+          color: Colors.blue,
+          child: Wrap(
+            children: <Widget>[
+              const TextField(
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(),
+                  hintText: '',
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.music_note),
+                title: const Text('Music'),
+                onTap: () => {},
+              ),
+              ListTile(
+                leading: const Icon(Icons.videocam),
+                title: const Text('Video'),
+                onTap: () => {},
+              ),
+            ],
+          ),
+        )
+    );
   }
 
   void _onRangeSelected(DateTime? start, DateTime? end, DateTime focusedDay) {
+
     setState(() {
       _focusedDay.value = focusedDay;
       _rangeStart = start;
@@ -97,9 +130,6 @@ class _TableComplexExampleState extends State<TableComplexExample> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('TableCalendar - Complex'),
-      ),
       body: Column(
         children: [
           ValueListenableBuilder<DateTime>(
@@ -121,13 +151,13 @@ class _TableComplexExampleState extends State<TableComplexExample> {
                 },
                 onLeftArrowTap: () {
                   _pageController.previousPage(
-                    duration: Duration(milliseconds: 300),
+                    duration: const Duration(milliseconds: 300),
                     curve: Curves.easeOut,
                   );
                 },
                 onRightArrowTap: () {
                   _pageController.nextPage(
-                    duration: Duration(milliseconds: 300),
+                    duration: const Duration(milliseconds: 300),
                     curve: Curves.easeOut,
                   );
                 },
@@ -223,27 +253,27 @@ class _CalendarHeader extends StatelessWidget {
             width: 120.0,
             child: Text(
               headerText,
-              style: TextStyle(fontSize: 26.0),
+              style: const TextStyle(fontSize: 26.0),
             ),
           ),
           IconButton(
-            icon: Icon(Icons.calendar_today, size: 20.0),
+            icon: const Icon(Icons.calendar_today, size: 20.0),
             visualDensity: VisualDensity.compact,
             onPressed: onTodayButtonTap,
           ),
           if (clearButtonVisible)
             IconButton(
-              icon: Icon(Icons.clear, size: 20.0),
+              icon: const Icon(Icons.clear, size: 20.0),
               visualDensity: VisualDensity.compact,
               onPressed: onClearButtonTap,
             ),
           const Spacer(),
           IconButton(
-            icon: Icon(Icons.chevron_left),
+            icon: const Icon(Icons.chevron_left),
             onPressed: onLeftArrowTap,
           ),
           IconButton(
-            icon: Icon(Icons.chevron_right),
+            icon: const Icon(Icons.chevron_right),
             onPressed: onRightArrowTap,
           ),
         ],

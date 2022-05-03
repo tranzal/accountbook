@@ -1,8 +1,15 @@
 import 'package:accountbook/screens/CalendarScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+
+Future<void> hiveInit() async {
+  await Hive.openBox('calendarData');
+}
 
 void main() async {
+  await Hive.initFlutter();
+  await hiveInit();
   runApp(const MyApp());
 }
 
