@@ -56,7 +56,7 @@ Color accountColor(int a){
     return Colors.red;
   }
   if(a < 0){
-    return Colors.blue;
+    return Colors.grey;
   }
   return Colors.black;
 }

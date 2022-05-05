@@ -5,11 +5,9 @@ import 'package:accountbook/hive/CalendarTypeAdapter.dart';
 import 'package:accountbook/utils/CalendarBuilder/CalendarBuilder.dart';
 import 'package:accountbook/utils/CalendarUtil.dart';
 import 'package:accountbook/widgets/CalendarHeader.dart';
-import 'package:accountbook/widgets/DefaultAppBar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:hive/hive.dart';
@@ -22,7 +20,6 @@ class TableComplexExample extends StatefulWidget {
 class _TableComplexExampleState extends State<TableComplexExample> {
   final calendarController = Get.put(CalendarController());
   final Box box = Hive.box('calendarData');
-  late final PageController _pageController;
   late final ValueNotifier<List<CalendarModel>> _selectedEvents;
   final ValueNotifier<DateTime> _focusedDay = ValueNotifier(DateTime.now());
   final Set<DateTime> _selectedDays = LinkedHashSet<DateTime>(
@@ -234,95 +231,112 @@ class _TableComplexExampleState extends State<TableComplexExample> {
   void modifyDialog(CalendarModel model, int index){
     Get.dialog(
         AlertDialog(
+
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10.0),
           ),
-          title: const Text("수정"),
-          content: Column(
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              TextField(
-                controller: TextEditingController(text: model.title),
-                keyboardType: TextInputType.text,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  hintText: '사용 내역',
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    title = value;
-                  });
-                },
-                onTap: () {
-                  setState(() {
-                    title = model.title;
-                  });
-                },
-              ),
-              TextField(
-                controller: TextEditingController(text: model.detail),
-                keyboardType: TextInputType.text,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  hintText: '상세내역',
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    detail = value;
-                  });
-                },
-                onTap: () {
-                  setState(() {
-                    detail = model.detail;
-                  });
-                },
-              ),
-              TextField(
-                controller: TextEditingController(text: NumberFormat('###,###,###,###').format(model.account).replaceAll(' ', '')),
-                inputFormatters: <TextInputFormatter>[
-                  FilteringTextInputFormatter.singleLineFormatter,
-                  // FilteringTextInputFormatter.allow(RegExp(r'^-?[0-9]\d*(\.\d+)?$')),
-                ],
-                keyboardType: const TextInputType.numberWithOptions(signed: true, decimal: true),
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  hintText: '금액',
-                ),
-                onChanged: (value) {
-
-                  String replaceValue = value.replaceAll(',', '');
-
-                  if(replaceValue.isEmpty){
-                    setState(() {
-                      account = 0;
-                    });
-                    return;
-                  }
-
-                  if((!replaceValue.startsWith('-') && !replaceValue.isNum) || (replaceValue.startsWith('-') && !replaceValue.isNum && replaceValue.length > 1)){
-                    print("asdfasdfasdf");
-                    return;
-                  }
-
-                  if(replaceValue.startsWith('-') && replaceValue.length > 1){
-                    setState(() {
-                      account = int.parse(replaceValue);
-                    });
-                    return;
-                  }
-                  if(!replaceValue.startsWith('-')){
-                    setState(() {
-                      account = int.parse(replaceValue);
-                    });
-                    return;
-                  }
-                },
-                onTap: () {
-                  setState(() {
-                    account = model.account;
-                  });
+              const Text("수정"),
+              IconButton(
+                icon: const Icon(Icons.clear, size: 20.0),
+                visualDensity: VisualDensity.compact,
+                onPressed: () {
+                  Get.back();
                 },
               )
             ],
+          ),
+          content: Container(
+            margin: EdgeInsets.zero,
+            height: MediaQuery.of(context).size.height * 0.25,
+            child: Column(
+              children: [
+                TextField(
+                  controller: TextEditingController(text: model.title),
+                  keyboardType: TextInputType.text,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    hintText: '사용 내역',
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      title = value;
+                    });
+                  },
+                  onTap: () {
+                    setState(() {
+                      title = model.title;
+                    });
+                  },
+                ),
+                TextField(
+                  controller: TextEditingController(text: model.detail),
+                  keyboardType: TextInputType.text,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    hintText: '상세내역',
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      detail = value;
+                    });
+                  },
+                  onTap: () {
+                    setState(() {
+                      detail = model.detail;
+                    });
+                  },
+                ),
+                TextField(
+                  controller: TextEditingController(text: NumberFormat('###,###,###,###').format(model.account).replaceAll(' ', '')),
+                  inputFormatters: <TextInputFormatter>[
+                    FilteringTextInputFormatter.singleLineFormatter,
+                    // FilteringTextInputFormatter.allow(RegExp(r'^-?[0-9]\d*(\.\d+)?$')),
+                  ],
+                  keyboardType: const TextInputType.numberWithOptions(signed: true, decimal: true),
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    hintText: '금액',
+                  ),
+                  onChanged: (value) {
+
+                    String replaceValue = value.replaceAll(',', '');
+
+                    if(replaceValue.isEmpty){
+                      setState(() {
+                        account = 0;
+                      });
+                      return;
+                    }
+
+                    if((!replaceValue.startsWith('-') && !replaceValue.isNum) || (replaceValue.startsWith('-') && !replaceValue.isNum && replaceValue.length > 1)){
+                      print("asdfasdfasdf");
+                      return;
+                    }
+
+                    if(replaceValue.startsWith('-') && replaceValue.length > 1){
+                      setState(() {
+                        account = int.parse(replaceValue);
+                      });
+                      return;
+                    }
+                    if(!replaceValue.startsWith('-')){
+                      setState(() {
+                        account = int.parse(replaceValue);
+                      });
+                      return;
+                    }
+                  },
+                  onTap: () {
+                    setState(() {
+                      account = model.account;
+                    });
+                  },
+                )
+              ],
+            ),
           ),
           actions: <Widget>[
             ElevatedButton(
@@ -440,6 +454,7 @@ class _TableComplexExampleState extends State<TableComplexExample> {
                   });
                 },
               ),
+              DatePickerDialog(initialDate: _selectedDays.elementAt(0), firstDate: _selectedDays.elementAt(0), lastDate: DateTime.now().add(const Duration(days: 30))),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
