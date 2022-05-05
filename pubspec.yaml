@@ -41,6 +41,8 @@ dependencies:
   table_calendar: ^3.0.5
   hive_flutter: ^1.1.0
   intl: ^0.17.0
+  hive_generator: ^1.1.2
+  build_runner: ^2.1.10
 
 dev_dependencies:
   flutter_test:

@@ -1,9 +1,15 @@
 import 'dart:collection';
 
-import 'package:accountbook/hive/EventTypeAdapter.dart';
+import 'package:accountbook/controller/CalendarController.dart';
+import 'package:accountbook/hive/CalendarTypeAdapter.dart';
+import 'package:accountbook/utils/CalendarBuilder/CalendarBuilder.dart';
 import 'package:accountbook/utils/CalendarUtil.dart';
+import 'package:accountbook/widgets/CalendarHeader.dart';
+import 'package:accountbook/widgets/DefaultAppBar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:hive/hive.dart';
@@ -14,9 +20,10 @@ class TableComplexExample extends StatefulWidget {
 }
 
 class _TableComplexExampleState extends State<TableComplexExample> {
-
+  final calendarController = Get.put(CalendarController());
+  final Box box = Hive.box('calendarData');
   late final PageController _pageController;
-  late final ValueNotifier<List<Event>> _selectedEvents;
+  late final ValueNotifier<List<CalendarModel>> _selectedEvents;
   final ValueNotifier<DateTime> _focusedDay = ValueNotifier(DateTime.now());
   final Set<DateTime> _selectedDays = LinkedHashSet<DateTime>(
     equals: isSameDay,
@@ -26,6 +33,9 @@ class _TableComplexExampleState extends State<TableComplexExample> {
   RangeSelectionMode _rangeSelectionMode = RangeSelectionMode.toggledOff;
   DateTime? _rangeStart;
   DateTime? _rangeEnd;
+  String title = '';
+  String detail = '';
+  int account = 0;
 
   @override
   void initState() {
@@ -44,28 +54,22 @@ class _TableComplexExampleState extends State<TableComplexExample> {
   bool get canClearSelection =>
       _selectedDays.isNotEmpty || _rangeStart != null || _rangeEnd != null;
 
-  List<Event> _getEventsForDay(DateTime day) {
-    return kEvents[day] ?? [];
+  List<CalendarModel> _getEventsForDay(DateTime day) {
+    return box.get(day.toString())?.cast<CalendarModel>()?? [];
   }
 
-  List<Event> _getEventsForDays(Iterable<DateTime> days) {
+  List<CalendarModel> _getEventsForDays(Iterable<DateTime> days) {
     return [
       for (final d in days) ..._getEventsForDay(d),
     ];
   }
 
-  List<Event> _getEventsForRange(DateTime start, DateTime end) {
+  List<CalendarModel> _getEventsForRange(DateTime start, DateTime end) {
     final days = daysInRange(start, end);
     return _getEventsForDays(days);
   }
 
   void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
-    List data = Hive.box('calendarData').get(selectedDay, defaultValue: []);
-
-    Hive.box('calendarData').put(selectedDay.toString(),[
-      const Event('fgsdfgsdfg', 'sdafgsdfg')
-    ]);
-
 
     setState(() {
       if (_selectedDays.contains(selectedDay)) {
@@ -81,31 +85,15 @@ class _TableComplexExampleState extends State<TableComplexExample> {
     });
 
     _selectedEvents.value = _getEventsForDays(_selectedDays);
-    Get.bottomSheet(
-        Container(
-          color: Colors.blue,
-          child: Wrap(
-            children: <Widget>[
-              const TextField(
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  hintText: '',
-                ),
-              ),
-              ListTile(
-                leading: const Icon(Icons.music_note),
-                title: const Text('Music'),
-                onTap: () => {},
-              ),
-              ListTile(
-                leading: const Icon(Icons.videocam),
-                title: const Text('Video'),
-                onTap: () => {},
-              ),
-            ],
-          ),
-        )
-    );
+
+    setState(() {
+      _rangeStart = null;
+      _rangeEnd = null;
+      _selectedDays.clear();
+      _selectedDays.add(_focusedDay.value);
+      _selectedEvents.value = [];
+      _selectedEvents.value = _getEventsForDays(_selectedDays);
+    });
   }
 
   void _onRangeSelected(DateTime? start, DateTime? end, DateTime focusedDay) {
@@ -132,39 +120,16 @@ class _TableComplexExampleState extends State<TableComplexExample> {
     return Scaffold(
       body: Column(
         children: [
-          ValueListenableBuilder<DateTime>(
-            valueListenable: _focusedDay,
-            builder: (context, value, _) {
-              return _CalendarHeader(
-                focusedDay: value,
-                clearButtonVisible: canClearSelection,
-                onTodayButtonTap: () {
-                  setState(() => _focusedDay.value = DateTime.now());
-                },
-                onClearButtonTap: () {
-                  setState(() {
-                    _rangeStart = null;
-                    _rangeEnd = null;
-                    _selectedDays.clear();
-                    _selectedEvents.value = [];
-                  });
-                },
-                onLeftArrowTap: () {
-                  _pageController.previousPage(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeOut,
-                  );
-                },
-                onRightArrowTap: () {
-                  _pageController.nextPage(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeOut,
-                  );
-                },
-              );
-            },
-          ),
-          TableCalendar<Event>(
+          listenableBuilder(),
+          TableCalendar<CalendarModel>(
+            locale: 'ko-KR',
+            weekendDays: const [DateTime.saturday, DateTime.sunday],
+            calendarBuilders: calendarBuilders(),
+            calendarStyle: CalendarStyle(
+              outsideDaysVisible: true,
+              weekendTextStyle: const TextStyle().copyWith(color: Colors.red),
+              holidayTextStyle: const TextStyle().copyWith(color: Colors.blue[800]),
+            ),
             firstDay: kFirstDay,
             lastDay: kLastDay,
             focusedDay: _focusedDay.value,
@@ -181,7 +146,7 @@ class _TableComplexExampleState extends State<TableComplexExample> {
             },
             onDaySelected: _onDaySelected,
             onRangeSelected: _onRangeSelected,
-            onCalendarCreated: (controller) => _pageController = controller,
+            onCalendarCreated: (controller) => calendarController.pageControlInit(controller),
             onPageChanged: (focusedDay) => _focusedDay.value = focusedDay,
             onFormatChanged: (format) {
               if (_calendarFormat != format) {
@@ -191,7 +156,7 @@ class _TableComplexExampleState extends State<TableComplexExample> {
           ),
           const SizedBox(height: 8.0),
           Expanded(
-            child: ValueListenableBuilder<List<Event>>(
+            child: ValueListenableBuilder<List<CalendarModel>>(
               valueListenable: _selectedEvents,
               builder: (context, value, _) {
                 return ListView.builder(
@@ -207,7 +172,9 @@ class _TableComplexExampleState extends State<TableComplexExample> {
                         borderRadius: BorderRadius.circular(12.0),
                       ),
                       child: ListTile(
-                        onTap: () => print('${value[index]}'),
+                        onTap: () {
+                          modifyDialog(value[index], index);
+                        },
                         title: Text('${value[index]}'),
                       ),
                     );
@@ -220,64 +187,290 @@ class _TableComplexExampleState extends State<TableComplexExample> {
       ),
     );
   }
-}
+  Widget listenableBuilder(){
+    return ValueListenableBuilder<DateTime>(
+      valueListenable: _focusedDay,
+      builder: (context, value, _) {
+        return CalendarHeader(
+          focusedDay: value,
+          clearButtonVisible: canClearSelection,
+          onTodayButtonTap: () {
+            setState(() => _focusedDay.value = DateTime.now());
+          },
+          onClearButtonTap: () {
+            if(_selectedDays.isEmpty){
+              return;
+            }
+            box.delete(_selectedDays.elementAt(0).toString());
+            setState(() {
+              _rangeStart = null;
+              _rangeEnd = null;
+              _selectedEvents.value = [];
+            });
+          },
+          onAddTap: () {
+            if(_selectedDays.isEmpty){
+              return;
+            }
+            bottomSheet();
+          },
+          onLeftArrowTap: () {
+            calendarController.pageController.previousPage(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+            );
+          },
+          onRightArrowTap: () {
+            calendarController.pageController.nextPage(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+            );
+          },
+        );
+      },
+    );
+  }
 
-class _CalendarHeader extends StatelessWidget {
-  final DateTime focusedDay;
-  final VoidCallback onLeftArrowTap;
-  final VoidCallback onRightArrowTap;
-  final VoidCallback onTodayButtonTap;
-  final VoidCallback onClearButtonTap;
-  final bool clearButtonVisible;
+  void modifyDialog(CalendarModel model, int index){
+    Get.dialog(
+        AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          title: const Text("수정"),
+          content: Column(
+            children: [
+              TextField(
+                controller: TextEditingController(text: model.title),
+                keyboardType: TextInputType.text,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  hintText: '사용 내역',
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    title = value;
+                  });
+                },
+                onTap: () {
+                  setState(() {
+                    title = model.title;
+                  });
+                },
+              ),
+              TextField(
+                controller: TextEditingController(text: model.detail),
+                keyboardType: TextInputType.text,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  hintText: '상세내역',
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    detail = value;
+                  });
+                },
+                onTap: () {
+                  setState(() {
+                    detail = model.detail;
+                  });
+                },
+              ),
+              TextField(
+                controller: TextEditingController(text: NumberFormat('###,###,###,###').format(model.account).replaceAll(' ', '')),
+                inputFormatters: <TextInputFormatter>[
+                  FilteringTextInputFormatter.singleLineFormatter,
+                  // FilteringTextInputFormatter.allow(RegExp(r'^-?[0-9]\d*(\.\d+)?$')),
+                ],
+                keyboardType: const TextInputType.numberWithOptions(signed: true, decimal: true),
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  hintText: '금액',
+                ),
+                onChanged: (value) {
 
-  const _CalendarHeader({
-    Key? key,
-    required this.focusedDay,
-    required this.onLeftArrowTap,
-    required this.onRightArrowTap,
-    required this.onTodayButtonTap,
-    required this.onClearButtonTap,
-    required this.clearButtonVisible,
-  }) : super(key: key);
+                  String replaceValue = value.replaceAll(',', '');
 
-  @override
-  Widget build(BuildContext context) {
-    final headerText = DateFormat.yMMM().format(focusedDay);
+                  if(replaceValue.isEmpty){
+                    setState(() {
+                      account = 0;
+                    });
+                    return;
+                  }
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          const SizedBox(width: 16.0),
-          SizedBox(
-            width: 120.0,
-            child: Text(
-              headerText,
-              style: const TextStyle(fontSize: 26.0),
+                  if((!replaceValue.startsWith('-') && !replaceValue.isNum) || (replaceValue.startsWith('-') && !replaceValue.isNum && replaceValue.length > 1)){
+                    print("asdfasdfasdf");
+                    return;
+                  }
+
+                  if(replaceValue.startsWith('-') && replaceValue.length > 1){
+                    setState(() {
+                      account = int.parse(replaceValue);
+                    });
+                    return;
+                  }
+                  if(!replaceValue.startsWith('-')){
+                    setState(() {
+                      account = int.parse(replaceValue);
+                    });
+                    return;
+                  }
+                },
+                onTap: () {
+                  setState(() {
+                    account = model.account;
+                  });
+                },
+              )
+            ],
+          ),
+          actions: <Widget>[
+            ElevatedButton(
+              child: const Text("수정"),
+              onPressed: () {
+                List<CalendarModel> eventList = box.get(_selectedDays.elementAt(0).toString())?.cast<CalendarModel>()?? [];
+                eventList[index] = (CalendarModel(title: title, account: account, detail: detail));
+                box.put(_selectedDays.elementAt(0).toString(), eventList);
+                setState(() {
+                  _selectedEvents.value = _getEventsForDays(_selectedDays);
+                });
+                Get.back();
+              },
             ),
+            ElevatedButton(
+              child: const Text("삭제"),
+              onPressed: () {
+                List<CalendarModel> eventList = box.get(_selectedDays.elementAt(0).toString())?.cast<CalendarModel>()?? [];
+                eventList.removeAt(index);
+                setState(() {
+                  _selectedEvents.value = _getEventsForDays(_selectedDays);
+                });
+                Get.back();
+              },
+            )
+          ],
+        )
+    );
+  }
+
+  void bottomSheet() {
+    List<CalendarModel> eventList = box.get(_selectedDays.elementAt(0).toString())?.cast<CalendarModel>()?? [];
+
+    Get.bottomSheet(
+        Container(
+          color: Colors.blue,
+          child: Wrap(
+            children: <Widget>[
+              TextField(
+                keyboardType: TextInputType.text,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  hintText: '사용 내역',
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    title = value;
+                  });
+                },
+                onTap: () {
+                  setState(() {
+                    title = '';
+                  });
+                },
+              ),
+              TextField(
+                keyboardType: TextInputType.text,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  hintText: '상세내역',
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    detail = value;
+                  });
+                },
+                onTap: () {
+                  setState(() {
+                    detail = '';
+                  });
+                },
+              ),
+              TextField(
+                inputFormatters: <TextInputFormatter>[
+                  FilteringTextInputFormatter.singleLineFormatter
+                  // FilteringTextInputFormatter.allow(RegExp(r'^[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)$')),
+                  // FilteringTextInputFormatter.allow(RegExp('^(0|[-]?[1-9]\d*)$')),
+                ],
+                keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  hintText: '금액',
+                ),
+                onChanged: (value) {
+
+
+                  if(value.isEmpty){
+                    setState(() {
+                      account = 0;
+                    });
+                    return;
+                  }
+
+                  if((!value.startsWith('-') && !value.isNum) || (value.startsWith('-') && !value.isNum && value.length > 1)){
+                    print("asdfasdfasdf");
+                    return;
+                  }
+
+                  if(value.startsWith('-') && value.length > 1){
+                    setState(() {
+                      account = int.parse(value);
+                    });
+                    return;
+                  }
+                  if(!value.startsWith('-')){
+                    setState(() {
+                      account = int.parse(value);
+                    });
+                    return;
+                  }
+                },
+                onTap: () {
+                  setState(() {
+                    account = 0;
+                  });
+                },
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                      onPressed: () {
+                        eventList.add(CalendarModel(title: title, account: account, detail: detail));
+                        box.put(_selectedDays.elementAt(0).toString(), eventList);
+                        setState(() {
+                          _selectedEvents.value = _getEventsForDays(_selectedDays);
+                        });
+                        Get.back();
+                      },
+                      child: const Text('저장')
+                  ),
+                  ElevatedButton(
+                      onPressed: () {
+                        eventList.add(CalendarModel(title: title, account: account, detail: detail));
+                        box.put(_selectedDays.elementAt(0).toString(), eventList);
+                        setState(() {
+                          _selectedEvents.value = _getEventsForDays(_selectedDays);
+                        });
+                        Get.back();
+                      },
+                      child: const Text('반복 저장')
+                  )
+                ],
+              ),
+            ],
           ),
-          IconButton(
-            icon: const Icon(Icons.calendar_today, size: 20.0),
-            visualDensity: VisualDensity.compact,
-            onPressed: onTodayButtonTap,
-          ),
-          if (clearButtonVisible)
-            IconButton(
-              icon: const Icon(Icons.clear, size: 20.0),
-              visualDensity: VisualDensity.compact,
-              onPressed: onClearButtonTap,
-            ),
-          const Spacer(),
-          IconButton(
-            icon: const Icon(Icons.chevron_left),
-            onPressed: onLeftArrowTap,
-          ),
-          IconButton(
-            icon: const Icon(Icons.chevron_right),
-            onPressed: onRightArrowTap,
-          ),
-        ],
-      ),
+        )
     );
   }
 }
+

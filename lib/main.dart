@@ -1,7 +1,9 @@
+import 'package:accountbook/hive/CalendarTypeAdapter.dart';
 import 'package:accountbook/screens/CalendarScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 Future<void> hiveInit() async {
   await Hive.openBox('calendarData');
@@ -9,8 +11,9 @@ Future<void> hiveInit() async {
 
 void main() async {
   await Hive.initFlutter();
-  await hiveInit();
-  runApp(const MyApp());
+  Hive.registerAdapter(CalendarModelAdapter());
+  await Hive.openBox('calendarData');
+  initializeDateFormatting().then((_) => runApp(const MyApp()));
 }
 
 class MyApp extends StatelessWidget {
