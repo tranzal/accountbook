@@ -5,6 +5,7 @@ import 'package:accountbook/hive/CalendarTypeAdapter.dart';
 import 'package:accountbook/utils/CalendarBuilder/CalendarBuilder.dart';
 import 'package:accountbook/utils/CalendarUtil.dart';
 import 'package:accountbook/widgets/CalendarHeader.dart';
+import 'package:accountbook/widgets/ShowDatePickerPop.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -422,7 +423,6 @@ class _TableComplexExampleState extends State<TableComplexExample> {
                 ),
                 onChanged: (value) {
 
-
                   if(value.isEmpty){
                     setState(() {
                       account = 0;
@@ -454,12 +454,48 @@ class _TableComplexExampleState extends State<TableComplexExample> {
                   });
                 },
               ),
-              DatePickerDialog(initialDate: _selectedDays.elementAt(0), firstDate: _selectedDays.elementAt(0), lastDate: DateTime.now().add(const Duration(days: 30))),
+              // DatePickerDialog(initialDate: _selectedDays.elementAt(0), firstDate: _selectedDays.elementAt(0), lastDate: _selectedDays.elementAt(0).add(const Duration(days: 1000)),),
+              Row(
+                children: [
+                  ElevatedButton(
+                    style: ButtonStyle(
+                      textStyle: MaterialStateProperty.all(const TextStyle(
+                        color: Colors.black
+                      )),
+                        backgroundColor: MaterialStateProperty.all(Colors.white)
+                    ),
+                    onPressed: () {
+                      Future<DateTime?> selectedDate = popupDatePicker(context, _selectedDays.elementAt(0));
+
+                      selectedDate.then((dateTime) {
+                        print(dateTime);
+                      });
+                    },
+                    child: const Text('Date Picker'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      Future<DateTime?> selectedDate = popupDatePicker(context, _selectedDays.elementAt(0));
+
+                      selectedDate.then((dateTime) {
+                        print(dateTime);
+                      });
+                    },
+                    child: const Text('Date Picker'),
+                  ),
+                ],
+              ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   ElevatedButton(
                       onPressed: () {
+                        if(title.isEmpty || account == 0 || detail.isEmpty){
+                          Get.defaultDialog(
+                            title: '값을 입력해 주세요'
+                          );
+                          return;
+                        }
                         eventList.add(CalendarModel(title: title, account: account, detail: detail));
                         box.put(_selectedDays.elementAt(0).toString(), eventList);
                         setState(() {
@@ -471,6 +507,12 @@ class _TableComplexExampleState extends State<TableComplexExample> {
                   ),
                   ElevatedButton(
                       onPressed: () {
+                        if(title.isEmpty || account == 0 || detail.isEmpty){
+                          Get.defaultDialog(
+                              title: '값을 입력해 주세요'
+                          );
+                          return;
+                        }
                         eventList.add(CalendarModel(title: title, account: account, detail: detail));
                         box.put(_selectedDays.elementAt(0).toString(), eventList);
                         setState(() {

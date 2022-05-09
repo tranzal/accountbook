@@ -10,11 +10,11 @@ CalendarBuilders<CalendarModel> calendarBuilders() {
         margin: const EdgeInsets.all(4.0),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-            color: Theme.of(context).primaryColor,
+            border: Border.all(color: Colors.grey, width: 1, style: BorderStyle.solid),
             borderRadius: BorderRadius.circular(10.0)),
         child: Text(
           date.day.toString(),
-          style: const TextStyle(color: Colors.white),
+          style: const TextStyle(color: Colors.black),
         )
     ),
     todayBuilder: (context, date, events) => Container(
@@ -56,7 +56,7 @@ Color accountColor(int a){
     return Colors.red;
   }
   if(a < 0){
-    return Colors.grey;
+    return Colors.blue;
   }
   return Colors.black;
 }
