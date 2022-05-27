@@ -13,7 +13,7 @@ CalendarBuilders<CalendarModel> calendarBuilders() {
             borderRadius: BorderRadius.circular(10.0)),
         child: Text(
           date.day.toString(),
-          style: const TextStyle(color: Colors.black),
+          style: TextStyle(color: weekendCheck(date)),
         )
     ),
     todayBuilder: (context, date, events) => Container(
@@ -23,7 +23,7 @@ CalendarBuilders<CalendarModel> calendarBuilders() {
             color: Colors.orange, borderRadius: BorderRadius.circular(10.0)),
         child: Text(
           date.day.toString(),
-          style: const TextStyle(color: Colors.white),
+          style: TextStyle(color: weekendCheck(date)),
         )
     ),
     markerBuilder: (context, date, events) {
@@ -48,6 +48,14 @@ CalendarBuilders<CalendarModel> calendarBuilders() {
       return null;
     }
   );
+}
+
+Color weekendCheck(DateTime date){
+  if(date.weekday == 7 || date.weekday == 6) {
+    return Colors.red;
+  }
+
+  return Colors.black;
 }
 
 Color accountColor(int a){

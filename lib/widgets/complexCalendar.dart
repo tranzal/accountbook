@@ -115,74 +115,72 @@ class _TableComplexExampleState extends State<TableComplexExample> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
-        children: [
-          listenableBuilder(),
-          TableCalendar<CalendarModel>(
-            locale: 'ko-KR',
-            weekendDays: const [DateTime.saturday, DateTime.sunday],
-            calendarBuilders: calendarBuilders(),
-            calendarStyle: CalendarStyle(
-              outsideDaysVisible: true,
-              weekendTextStyle: const TextStyle().copyWith(color: Colors.red),
-              holidayTextStyle: const TextStyle().copyWith(color: Colors.blue[800]),
-            ),
-            firstDay: kFirstDay,
-            lastDay: kLastDay,
-            focusedDay: _focusedDay.value,
-            headerVisible: false,
-            selectedDayPredicate: (day) => _selectedDays.contains(day),
-            rangeStartDay: _rangeStart,
-            rangeEndDay: _rangeEnd,
-            calendarFormat: _calendarFormat,
-            rangeSelectionMode: _rangeSelectionMode,
-            eventLoader: _getEventsForDay,
-            holidayPredicate: (day) {
-              // Every 20th day of the month will be treated as a holiday
-              return day.day == 20;
-            },
-            onDaySelected: _onDaySelected,
-            onRangeSelected: _onRangeSelected,
-            onCalendarCreated: (controller) => calendarController.pageControlInit(controller),
-            onPageChanged: (focusedDay) => _focusedDay.value = focusedDay,
-            onFormatChanged: (format) {
-              if (_calendarFormat != format) {
-                setState(() => _calendarFormat = format);
-              }
+    return Column(
+      children: [
+        listenableBuilder(),
+        TableCalendar<CalendarModel>(
+          locale: 'ko-KR',
+          weekendDays: const [DateTime.saturday, DateTime.sunday],
+          calendarBuilders: calendarBuilders(),
+          calendarStyle: CalendarStyle(
+            outsideDaysVisible: true,
+            weekendTextStyle: const TextStyle().copyWith(color: Colors.red),
+            holidayTextStyle: const TextStyle().copyWith(color: Colors.blue[800]),
+          ),
+          firstDay: kFirstDay,
+          lastDay: kLastDay,
+          focusedDay: _focusedDay.value,
+          headerVisible: false,
+          selectedDayPredicate: (day) => _selectedDays.contains(day),
+          rangeStartDay: _rangeStart,
+          rangeEndDay: _rangeEnd,
+          calendarFormat: _calendarFormat,
+          rangeSelectionMode: _rangeSelectionMode,
+          eventLoader: _getEventsForDay,
+          holidayPredicate: (day) {
+            // Every 20th day of the month will be treated as a holiday
+            return day.day == 0;
+          },
+          onDaySelected: _onDaySelected,
+          onRangeSelected: _onRangeSelected,
+          onCalendarCreated: (controller) => calendarController.pageControlInit(controller),
+          onPageChanged: (focusedDay) => _focusedDay.value = focusedDay,
+          onFormatChanged: (format) {
+            if (_calendarFormat != format) {
+              setState(() => _calendarFormat = format);
+            }
+          },
+        ),
+        const SizedBox(height: 8.0),
+        Expanded(
+          child: ValueListenableBuilder<List<CalendarModel>>(
+            valueListenable: _selectedEvents,
+            builder: (context, value, _) {
+              return ListView.builder(
+                itemCount: value.length,
+                itemBuilder: (context, index) {
+                  return Container(
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 12.0,
+                      vertical: 4.0,
+                    ),
+                    decoration: BoxDecoration(
+                      border: Border.all(),
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
+                    child: ListTile(
+                      onTap: () {
+                        modifyDialog(value[index], index);
+                      },
+                      title: Text('${value[index]}'),
+                    ),
+                  );
+                },
+              );
             },
           ),
-          const SizedBox(height: 8.0),
-          Expanded(
-            child: ValueListenableBuilder<List<CalendarModel>>(
-              valueListenable: _selectedEvents,
-              builder: (context, value, _) {
-                return ListView.builder(
-                  itemCount: value.length,
-                  itemBuilder: (context, index) {
-                    return Container(
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: 12.0,
-                        vertical: 4.0,
-                      ),
-                      decoration: BoxDecoration(
-                        border: Border.all(),
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                      child: ListTile(
-                        onTap: () {
-                          modifyDialog(value[index], index);
-                        },
-                        title: Text('${value[index]}'),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
   Widget listenableBuilder(){
@@ -232,7 +230,6 @@ class _TableComplexExampleState extends State<TableComplexExample> {
   void modifyDialog(CalendarModel model, int index){
     Get.dialog(
         AlertDialog(
-
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10.0),
           ),

@@ -37,11 +37,11 @@ class CalendarHeader extends StatelessWidget {
               style: const TextStyle(fontSize: 26.0),
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.calendar_today, size: 20.0),
-            visualDensity: VisualDensity.compact,
-            onPressed: onTodayButtonTap,
-          ),
+          // IconButton(
+          //   icon: const Icon(Icons.calendar_today, size: 20.0),
+          //   visualDensity: VisualDensity.compact,
+          //   onPressed: onTodayButtonTap,
+          // ),
           if (clearButtonVisible)
             IconButton(
               icon: const Icon(Icons.clear, size: 20.0),

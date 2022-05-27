@@ -1,38 +1,42 @@
-import 'package:accountbook/widgets/SideMenu.dart';
+import 'package:accountbook/widgets/AccountListWidget.dart';
+import 'package:accountbook/widgets/ChartCustomWidget.dart';
 import 'package:accountbook/widgets/complexCalendar.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
-class CalendarScreen extends StatelessWidget {
+class CalendarScreen extends StatefulWidget {
+  @override
+  State<CalendarScreen> createState() => _CalendarScreenState();
+}
+
+class _CalendarScreenState extends State<CalendarScreen> {
+  int selectedIndex = 0;
+  List<Widget> list = [
+    TableComplexExample(),
+    AccountListWidget(),
+    ChartCustomWidget(),
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      endDrawer: SideMenu(),
-      endDrawerEnableOpenDragGesture: false,
       appBar: AppBar(
-        leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              Get.reload();
-            }
-          ),
         title: const Text('TableCalendar Example'),
-        actions: [
-          Builder(
-              builder: (context){
-                return IconButton(
-                    icon: const Icon(Icons.menu),
-                    onPressed: () {
-                      Scaffold.of(context).openEndDrawer();
-                    }
-                );
-              }
-          ),
-        ],
       ),
       body: Center(
-        child: TableComplexExample(),
+        child: list.elementAt(selectedIndex),
       ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: selectedIndex,
+          onTap: (index) {
+            setState(() {
+              selectedIndex = index;
+            });
+          },
+          items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: ''),
+            BottomNavigationBarItem(icon: Icon(Icons.list), label: ''),
+            BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: ''),
+          ]),
     );
   }
 }
