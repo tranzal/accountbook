@@ -21,29 +21,28 @@ class AccountListWidget extends StatelessWidget {
           return Center(
             child: Column(
               children: <Widget>[
-                Text(DateFormat('yyyy-MM-dd').format(DateTime.parse(box.keyAt(box.length - index - 1)))),
+                Text(DateFormat('yyyy-MM-dd').format(DateTime.parse(box.keyAt(box.length - index - 1))), ),
+                const Divider(color: Colors.black, height: 1,),
                 for(CalendarModel calmodel in box.get(box.keyAt(box.length - index - 1))) calendarView(calmodel)
               ],
             ),
           );
-        }
+        },
     );
   }
 
   Widget calendarView(CalendarModel calendarModel) {
     return Container(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
       alignment: Alignment.centerLeft,
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.black, width: 1),
-        borderRadius: BorderRadius.circular(5),
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: Colors.black, width: 1, style: BorderStyle.solid)),
       ),
       child: Column(
         children: <Widget>[
           Text('제목 : ${calendarModel.title}'),
           Text('상세 : ${calendarModel.detail}'),
           Text('금액 : ${calendarModel.account.toString()}'),
-
         ],
       ),
     );

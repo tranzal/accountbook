@@ -35,6 +35,8 @@ class _TableComplexExampleState extends State<TableComplexExample> {
   String detail = '';
   int account = 0;
 
+
+
   @override
   void initState() {
     super.initState();
@@ -115,6 +117,7 @@ class _TableComplexExampleState extends State<TableComplexExample> {
 
   @override
   Widget build(BuildContext context) {
+
     return Column(
       children: [
         listenableBuilder(),
@@ -208,7 +211,7 @@ class _TableComplexExampleState extends State<TableComplexExample> {
             if(_selectedDays.isEmpty){
               return;
             }
-            bottomSheet();
+            bottomSheet(context);
           },
           onLeftArrowTap: () {
             calendarController.pageController.previousPage(
@@ -364,167 +367,197 @@ class _TableComplexExampleState extends State<TableComplexExample> {
         )
     );
   }
-
-  void bottomSheet() {
+  void bottomSheet(BuildContext context) {
+    DateTime startDate = DateTime.now();
+    DateTime endDate = DateTime.now();
     List<CalendarModel> eventList = box.get(_selectedDays.elementAt(0).toString())?.cast<CalendarModel>()?? [];
 
     Get.bottomSheet(
-        Container(
-          color: Colors.blue,
-          child: Wrap(
-            children: <Widget>[
-              TextField(
-                keyboardType: TextInputType.text,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  hintText: '사용 내역',
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    title = value;
-                  });
-                },
-                onTap: () {
-                  setState(() {
-                    title = '';
-                  });
-                },
-              ),
-              TextField(
-                keyboardType: TextInputType.text,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  hintText: '상세내역',
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    detail = value;
-                  });
-                },
-                onTap: () {
-                  setState(() {
-                    detail = '';
-                  });
-                },
-              ),
-              TextField(
-                inputFormatters: <TextInputFormatter>[
-                  FilteringTextInputFormatter.singleLineFormatter
-                  // FilteringTextInputFormatter.allow(RegExp(r'^[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)$')),
-                  // FilteringTextInputFormatter.allow(RegExp('^(0|[-]?[1-9]\d*)$')),
-                ],
-                keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  hintText: '금액',
-                ),
-                onChanged: (value) {
-
-                  if(value.isEmpty){
-                    setState(() {
-                      account = 0;
-                    });
-                    return;
-                  }
-
-                  if((!value.startsWith('-') && !value.isNum) || (value.startsWith('-') && !value.isNum && value.length > 1)){
-                    print("asdfasdfasdf");
-                    return;
-                  }
-
-                  if(value.startsWith('-') && value.length > 1){
-                    setState(() {
-                      account = int.parse(value);
-                    });
-                    return;
-                  }
-                  if(!value.startsWith('-')){
-                    setState(() {
-                      account = int.parse(value);
-                    });
-                    return;
-                  }
-                },
-                onTap: () {
-                  setState(() {
-                    account = 0;
-                  });
-                },
-              ),
-              // DatePickerDialog(initialDate: _selectedDays.elementAt(0), firstDate: _selectedDays.elementAt(0), lastDate: _selectedDays.elementAt(0).add(const Duration(days: 1000)),),
-              Row(
-                children: [
-                  ElevatedButton(
-                    style: ButtonStyle(
-                      textStyle: MaterialStateProperty.all(const TextStyle(
-                        color: Colors.black
-                      )),
-                        backgroundColor: MaterialStateProperty.all(Colors.white)
+        StatefulBuilder(
+          builder: (context, setState) {
+            return Container(
+              color: Colors.blue,
+              child: Wrap(
+                children: <Widget>[
+                  TextField(
+                    keyboardType: TextInputType.text,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: '사용 내역',
                     ),
-                    onPressed: () {
-                      Future<DateTime?> selectedDate = popupDatePicker(context, _selectedDays.elementAt(0));
-
-                      selectedDate.then((dateTime) {
-                        print(dateTime);
+                    onChanged: (value) {
+                      setState(() {
+                        title = value;
                       });
                     },
-                    child: const Text('Date Picker'),
+                    onTap: () {
+                      setState(() {
+                        title = '';
+                      });
+                    },
                   ),
-                  ElevatedButton(
-                    onPressed: () {
-                      Future<DateTime?> selectedDate = popupDatePicker(context, _selectedDays.elementAt(0));
-
-                      selectedDate.then((dateTime) {
-                        print(dateTime);
+                  TextField(
+                    keyboardType: TextInputType.text,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: '상세내역',
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        detail = value;
                       });
                     },
-                    child: const Text('Date Picker'),
+                    onTap: () {
+                      setState(() {
+                        detail = '';
+                      });
+                    },
+                  ),
+                  TextField(
+                    inputFormatters: <TextInputFormatter>[
+                      FilteringTextInputFormatter.singleLineFormatter
+                      // FilteringTextInputFormatter.allow(RegExp(r'^[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)$')),
+                      // FilteringTextInputFormatter.allow(RegExp('^(0|[-]?[1-9]\d*)$')),
+                    ],
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: '금액',
+                    ),
+                    onChanged: (value) {
+
+                      if(value.isEmpty){
+                        setState(() {
+                          account = 0;
+                        });
+                        return;
+                      }
+
+                      if((!value.startsWith('-') && !value.isNum) || (value.startsWith('-') && !value.isNum && value.length > 1)){
+                        print("asdfasdfasdf");
+                        return;
+                      }
+
+                      if(value.startsWith('-') && value.length > 1){
+                        setState(() {
+                          account = int.parse(value);
+                        });
+                        return;
+                      }
+                      if(!value.startsWith('-')){
+                        setState(() {
+                          account = int.parse(value);
+                        });
+                        return;
+                      }
+                    },
+                    onTap: () {
+                      setState(() {
+                        account = 0;
+                      });
+                    },
+                  ),
+                  // DatePickerDialog(initialDate: _selectedDays.elementAt(0), firstDate: _selectedDays.elementAt(0), lastDate: _selectedDays.elementAt(0).add(const Duration(days: 1000)),),
+                  Row(
+                    children: [
+                      ElevatedButton(
+                        style: ButtonStyle(
+                            textStyle: MaterialStateProperty.all(const TextStyle(
+                                color: Colors.black
+                            )),
+                            backgroundColor: MaterialStateProperty.all(Colors.white)
+                        ),
+                        onPressed: () {
+                          Future<DateTime?> selectedDate = popupDatePicker(context, _selectedDays.elementAt(0));
+                          selectedDate.then((dateTime) {
+                            if(int.parse(dateTime!.difference(DateTime.now()).inDays.toString()) < 0){
+                              return;
+                            }
+                            startDate = dateTime;
+                            setState((){
+                            });
+                          });
+                        },
+                        child: Text(DateFormat('yyyy-MM-dd').format(startDate), style: const TextStyle(color: Colors.black)),
+                      ),
+                      const Text(' ~ '),
+                      ElevatedButton(
+                        style: ButtonStyle(
+                            textStyle: MaterialStateProperty.all(const TextStyle(
+                                color: Colors.black
+                            )),
+                            backgroundColor: MaterialStateProperty.all(Colors.white)
+                        ),
+                        onPressed: () {
+                          Future<DateTime?> selectedDate = popupDatePicker(context, _selectedDays.elementAt(0));
+
+                          selectedDate.then((dateTime) {
+                            if(int.parse(dateTime!.difference(startDate).inDays.toString()) < 0){
+                              return;
+                            }
+                            endDate = dateTime;
+                            setState((){});
+                          });
+
+                        },
+                        child: Text(DateFormat('yyyy-MM-dd').format(endDate), style: const TextStyle(color: Colors.black)),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ElevatedButton(
+                          onPressed: () {
+                            if(title.isEmpty || account == 0 || detail.isEmpty){
+                              Get.defaultDialog(
+                                  title: '값을 입력해 주세요'
+                              );
+                              return;
+                            }
+                            eventList.add(CalendarModel(title: title, account: account, detail: detail));
+                            box.put(_selectedDays.elementAt(0).toString(), eventList);
+                            setState(() {
+                              _selectedEvents.value = _getEventsForDays(_selectedDays);
+                            });
+                            Get.back();
+                          },
+                          child: const Text('저장')
+                      ),
+                      ElevatedButton(
+                          onPressed: () {
+                            if(title.isEmpty || account == 0 || detail.isEmpty){
+                              Get.defaultDialog(
+                                  title: '값을 입력해 주세요'
+                              );
+                              return;
+                            }
+                            eventList.add(CalendarModel(title: title, account: account, detail: detail));
+                            DateTime date = startDate;
+                            // while(true){
+                            //   if(endDate == date){
+                            //     return;
+                            //   }
+                            //   box.put(date, eventList);
+                            //   date = DateTime(date.year, date.month + 1, date.day);
+                            // }
+
+                            setState(() {
+                              _selectedEvents.value = _getEventsForDays(_selectedDays);
+                            });
+                            Get.back();
+                          },
+                          child: const Text('반복 저장')
+                      )
+                    ],
                   ),
                 ],
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton(
-                      onPressed: () {
-                        if(title.isEmpty || account == 0 || detail.isEmpty){
-                          Get.defaultDialog(
-                            title: '값을 입력해 주세요'
-                          );
-                          return;
-                        }
-                        eventList.add(CalendarModel(title: title, account: account, detail: detail));
-                        box.put(_selectedDays.elementAt(0).toString(), eventList);
-                        setState(() {
-                          _selectedEvents.value = _getEventsForDays(_selectedDays);
-                        });
-                        Get.back();
-                      },
-                      child: const Text('저장')
-                  ),
-                  ElevatedButton(
-                      onPressed: () {
-                        if(title.isEmpty || account == 0 || detail.isEmpty){
-                          Get.defaultDialog(
-                              title: '값을 입력해 주세요'
-                          );
-                          return;
-                        }
-                        eventList.add(CalendarModel(title: title, account: account, detail: detail));
-                        box.put(_selectedDays.elementAt(0).toString(), eventList);
-                        setState(() {
-                          _selectedEvents.value = _getEventsForDays(_selectedDays);
-                        });
-                        Get.back();
-                      },
-                      child: const Text('반복 저장')
-                  )
-                ],
-              ),
-            ],
-          ),
-        )
+            );
+          },
+        ),
+
     );
   }
-}
 
+}
